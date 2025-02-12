@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class ProductEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int product_id;
+    private int productId;
 
     @NotBlank(message = "Product name must not be empty")
     @Column(name = "product_name", nullable = false)
