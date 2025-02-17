@@ -11,6 +11,6 @@ public interface RequestRepository extends JpaRepository<RequestEntity,Integer> 
     Optional<RequestEntity> findById(int requestId);
     List<RequestEntity> findByStatus(String status);
 
-    List<RequestEntity> findByProductId(int productId);
+    Optional<RequestEntity> findByProductId(int productId);
 }
 

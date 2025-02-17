@@ -58,7 +58,7 @@ public class EmployeeController {
 
     @GetMapping("/checkStock")
     public ResponseEntity<Integer> checkStockAvailability(
-            @RequestParam int franchiseId,
+          //  @RequestParam int franchiseId,
             @RequestParam int productId,
             @RequestHeader("Session-Id") String sessionId) {
         if (!isSessionValid(sessionId)) {
@@ -66,7 +66,7 @@ public class EmployeeController {
         }
 
         try {
-            int availableStock = employeeService.checkStockAvailability(franchiseId, productId);
+            int availableStock = employeeService.checkStockAvailability(//franchiseId, productId);
             return new ResponseEntity<>(availableStock, HttpStatus.OK);
         } catch (RuntimeException e) {
 

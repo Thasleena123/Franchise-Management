@@ -35,18 +35,43 @@ public class AdminService {
         userEntity.setPassword(authenticate.encodePassword(userEntity.getPassword()));
         return userRepository.save(userEntity);
     }
+    public ProductEntity addProduct(ProductEntity product) {
+        return productRepository.save(product); // Save the product to the database
+    }
+    public ProductEntity updateProduct(int productId,ProductEntity updatedProduct){
+        ProductEntity product = productRepository.findByproductId(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setProductName(updatedProduct.getProductName());
+        product.setCategory(updatedProduct.getCategory());
+        product.setDistributorPrice(updatedProduct.getDistributorPrice());
+        product.setRetailPrice(updatedProduct.getRetailPrice());
+        product.setWholesalePrice(updatedProduct.getWholesalePrice());
+
+        return productRepository.save(product);
+    }
+    @Transactional
+    public CompanyStockEntity addProductToCompanyStock(int productId, int quantity) {
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        CompanyStockEntity companyStock = new CompanyStockEntity();
+        companyStock.setProductId(productId);
+        companyStock.setQuantity(quantity);
+        return companyStockRepository.save(companyStock);
+    }
+
 
     @Transactional
-    public void approveStocKRequest(int RequestId, int adminId) {
+    public void approveStocKRequest(int RequestId) {
         RequestEntity request = requestRepository.findById(RequestId)
                 .orElseThrow(() -> new RuntimeException("stock request not found"));
+
         request.setStatus("Approved");
         requestRepository.save(request);
         allocateProductToFranchase(request.getFranchiseid(), request.getProductId(), request.getNoOfRequestedProduct(), request.getRequestId());
     }
 
     @Transactional
-    public void rejectStockRequest(int requestId, int adminId) {
+    public void rejectStockRequest(int requestId) {
         RequestEntity request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Stock request not found"));
         request.setStatus("Rejected");
@@ -67,8 +92,8 @@ public class AdminService {
             franchiseStock.setQuantity(franchiseStock.getQuantity() + quantityToAllocate);
             franchiseStockRepository.save(franchiseStock);
         } else {
-            FranchiseEntity franchiseEntity = franchiseRepository.findById(franchiseId)
-                    .orElseThrow(() -> new RuntimeException("Franchise not found"));
+//            FranchiseEntity franchiseEntity = franchiseRepository.findById(franchiseId)
+//                    .orElseThrow(() -> new RuntimeException("Franchise not found"));
 
             franchiseStock = new FranchiseStockEntity();
             franchiseStock.setFranchiseId(franchiseId);

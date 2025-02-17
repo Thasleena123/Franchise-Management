@@ -1,10 +1,10 @@
 package com.example.franchisemanagement.controller;
 
+import com.example.franchisemanagement.Repository.CompanyStockRepository;
+import com.example.franchisemanagement.Repository.ProductRepository;
 import com.example.franchisemanagement.Repository.SessionRepository;
 import com.example.franchisemanagement.Repository.UserRepository;
-import com.example.franchisemanagement.entity.FranchiseEntity;
-import com.example.franchisemanagement.entity.SessionEntity;
-import com.example.franchisemanagement.entity.UserEntity;
+import com.example.franchisemanagement.entity.*;
 import com.example.franchisemanagement.enums.Role;
 import com.example.franchisemanagement.sevice.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +26,10 @@ public class AdminController {
     private UserRepository userRepository;
     @Autowired
     private SessionRepository sessionRepository;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
+    private CompanyStockRepository companyStockRepository;
 
     private boolean isSessionValid(String sessionId) {
         SessionEntity sessionEntity = sessionRepository.findBySessionId(sessionId);
@@ -42,57 +46,87 @@ public class AdminController {
 
     }
 
-        @PostMapping("/addFranchise")
-        public ResponseEntity<FranchiseEntity> addFranchise(@RequestBody FranchiseEntity franchiseEntity,@RequestHeader("Session-Id") String sessionId)
-       {
-           if (!isSessionValid(sessionId)){
-               return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-           }
+    @PostMapping("/addFranchise")
+    public ResponseEntity<FranchiseEntity> addFranchise(@RequestBody FranchiseEntity franchiseEntity, @RequestHeader("Session-Id") String sessionId) {
+        if (!isSessionValid(sessionId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
 
         FranchiseEntity savedFranchise = adminService.addFranchise(franchiseEntity);
-            return ResponseEntity.ok(savedFranchise);
+        return ResponseEntity.ok(savedFranchise);
+    }
+
+    @DeleteMapping("/deleteFranchise/{franchiseId}")
+    public ResponseEntity<String> deleteFranchise(@PathVariable int franchiseId, @RequestHeader("Session-Id") String sessionId) {
+
+        if (!isSessionValid(sessionId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Session expired or invalid.");
         }
 
-        @DeleteMapping("/deleteFranchise/{franchiseId}")
-        public ResponseEntity<String> deleteFranchise(@PathVariable int franchiseId,  @RequestHeader("Session-Id") String sessionId) {
+        adminService.deleteFranchase(franchiseId);
+        return ResponseEntity.ok("Franchise deleted successfully");
 
-                if (!isSessionValid(sessionId)) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Session expired or invalid.");
-                }
+    }
 
-                adminService.deleteFranchase(franchiseId);
-                return ResponseEntity.ok("Franchise deleted successfully");
+    @PostMapping("/createUser")
+    public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity userEntity, @RequestHeader("Session-Id") String sessionId) {
 
+        if (!isSessionValid(sessionId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
-        @PostMapping("/createUser")
-        public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity userEntity,@RequestHeader("Session-Id") String sessionId) {
+        UserEntity savedUser = adminService.createUser(userEntity);
+        return ResponseEntity.ok(savedUser);
+    }
 
-            if (!isSessionValid(sessionId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-            }
-            UserEntity savedUser = adminService.createUser(userEntity);
-            return ResponseEntity.ok(savedUser);
+    @PostMapping("/addProduct")
+    public ResponseEntity<ProductEntity> addProduct(@RequestBody ProductEntity product
+            , @RequestHeader("Session-Id") String sessionId) {
+        if (!isSessionValid(sessionId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
-        @PutMapping("/approveStockRequest/{requestId}")
-        public ResponseEntity<String> approveStockRequest(
-                @PathVariable int requestId,
-                @RequestParam int adminId,
-                @RequestHeader("Session-id") String sessionId) {
-            if (!isSessionValid(sessionId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Session expired or invalid.");
-            }
-            adminService.approveStocKRequest(requestId, adminId);
-            return ResponseEntity.ok("Stock request approved and product allocated to franchise");
+        ProductEntity savedProduct = adminService.addProduct(product);
+        return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/addToStock/{productId}")
+    public ResponseEntity<CompanyStockEntity> addProductToStock(
+            @PathVariable int productId,
+            @RequestParam int quantity,
+            @RequestHeader("Session-id") String sessionId) {
+        if (!isSessionValid(sessionId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
-        @PutMapping("/rejectStockRequest/{requestId}")
-        public ResponseEntity<String> rejectStockRequest(
-                @PathVariable int requestId,
-                @RequestParam int adminId,@RequestHeader("Session-id") String sessionId) {
-            if (!isSessionValid(sessionId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Session expired or invalid.");
-            }
-            adminService.rejectStockRequest(requestId, adminId);
-            return ResponseEntity.ok("Stock request rejected");
+
+        CompanyStockEntity newStock = adminService.addProductToCompanyStock(productId, quantity);
+
+        if (newStock != null) {
+            return new ResponseEntity<>(newStock, HttpStatus.CREATED);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+    }
+
+
+    @PutMapping("/approveStockRequest/{requestId}")
+    public ResponseEntity<String> approveStockRequest(
+            @PathVariable int requestId,
+            @RequestHeader("Session-id") String sessionId) {
+        if (!isSessionValid(sessionId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Session expired or invalid.");
+        }
+        adminService.approveStocKRequest(requestId);
+        return ResponseEntity.ok("Stock request approved and product allocated to franchise");
+    }
+
+    @PutMapping("/rejectStockRequest/{requestId}")
+    public ResponseEntity<String> rejectStockRequest(
+            @PathVariable int requestId,
+             @RequestHeader("Session-id") String sessionId) {
+        if (!isSessionValid(sessionId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Session expired or invalid.");
+        }
+        adminService.rejectStockRequest(requestId);
+        return ResponseEntity.ok("Stock request rejected");
+    }
 
 }

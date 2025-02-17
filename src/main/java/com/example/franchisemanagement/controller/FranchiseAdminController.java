@@ -37,18 +37,16 @@ public class FranchiseAdminController {
         UserEntity user = userRepository.getReferenceById(sessionEntity.getUserId());
         return user != null && user.getRole() == Role.FRANCHISE_OWNER;
 
-
     }
 
-    @PostMapping("/createEmployee/{franchiseId}")
+    @PostMapping("/createEmployee")
     public ResponseEntity<UserEntity> createEmployee(@RequestBody UserEntity userEntity,
-                                                     @PathVariable("franchiseId") int franchiseId,
                                                      @RequestHeader("Session-Id") String sessionId) {
         if (!isSessionValid(sessionId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         try {
-            UserEntity savedUser = franchiseAdminService.createEmployeeUser(userEntity, franchiseId);
+            UserEntity savedUser = franchiseAdminService.createEmployeeUser(userEntity);
             return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -56,32 +54,32 @@ public class FranchiseAdminController {
     }
 
     @DeleteMapping("/deleteEmployee/{userId}")
-    public ResponseEntity<Void> deleteEmployee(@PathVariable("userId") int userId,
+    public ResponseEntity<String> deleteEmployee(@PathVariable("userId") int userId,
                                                @RequestHeader("Session-Id") String sessionId) {
         if (!isSessionValid(sessionId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         try {
             franchiseAdminService.deleteEmployeeUser(userId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>("Successfully Deleted",HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    @PostMapping("/request-new-stock/{franchiseId}/{productId}")
-    public ResponseEntity<RequestEntity> requestNewStock(@PathVariable int franchiseId,
-                                                         @PathVariable int productId,
-                                                         @RequestParam int quantityRequested,
+    @PostMapping("/request-new-stock/{productId}")
+    public ResponseEntity<RequestEntity> requestNewStock(
+                                                         @PathVariable("productId") int productId,
+                                                         @RequestParam("quantity") int quantityRequested,
                                                          @RequestHeader("Session-Id") String sessionId) {
         if (!isSessionValid(sessionId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
         try {
-            RequestEntity newRequest = franchiseAdminService.requestNewStock(franchiseId, productId, quantityRequested);
+            RequestEntity newRequest = franchiseAdminService.requestNewStock( productId, quantityRequested, sessionId);
             return new ResponseEntity<>(newRequest, HttpStatus.CREATED);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
 }
