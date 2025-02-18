@@ -1,9 +1,6 @@
 package com.example.franchisemanagement.controller;
 
-import com.example.franchisemanagement.Repository.CompanyStockRepository;
-import com.example.franchisemanagement.Repository.ProductRepository;
-import com.example.franchisemanagement.Repository.SessionRepository;
-import com.example.franchisemanagement.Repository.UserRepository;
+import com.example.franchisemanagement.Repository.*;
 import com.example.franchisemanagement.entity.*;
 import com.example.franchisemanagement.enums.Role;
 import com.example.franchisemanagement.sevice.AdminService;
@@ -30,6 +27,8 @@ public class AdminController {
     private ProductRepository productRepository;
     @Autowired
     private CompanyStockRepository companyStockRepository;
+    @Autowired
+    private RequestRepository requestRepository;
 
     private boolean isSessionValid(String sessionId) {
         SessionEntity sessionEntity = sessionRepository.findBySessionId(sessionId);
@@ -125,6 +124,19 @@ public class AdminController {
         if (!isSessionValid(sessionId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Session expired or invalid.");
         }
+        Optional<RequestEntity> requestOptional = requestRepository.findById(requestId);
+        if (requestOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Stock request not found.");
+        }
+
+
+        RequestEntity request = requestOptional.get();
+        if ("Approved".equals(request.getStatus())) {
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("The stock request with ID " + requestId + " has already been approved and cannot be rejected.");
+        }
+
         adminService.rejectStockRequest(requestId);
         return ResponseEntity.ok("Stock request rejected");
     }

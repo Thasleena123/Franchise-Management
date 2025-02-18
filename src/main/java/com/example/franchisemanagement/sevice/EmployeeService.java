@@ -47,7 +47,7 @@ public class EmployeeService {
 
         return order;
     }
-    public int checkStockAvailability(int franchiseId, int productId) {
+    public int checkStockAvailability(int franchiseId,int productId) {
         FranchiseStockEntity franchiseStock = franchiseStockRepository.findByFranchiseIdAndProductId(franchiseId, productId)
                 .orElseThrow(() -> new RuntimeException("Product not available in franchise stock"));
         return franchiseStock.getQuantity();

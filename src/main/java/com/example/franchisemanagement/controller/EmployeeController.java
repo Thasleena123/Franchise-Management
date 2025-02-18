@@ -40,16 +40,18 @@ public class EmployeeController {
 
     @PostMapping("/create")
     public ResponseEntity<OrderEntity> createOrder(
-            @RequestParam int franchiseId,
-            @RequestParam int productId,
-            @RequestParam int quantitySold,
-            @RequestParam String customerName,
+            @RequestParam("productId") int productId,
+            @RequestParam("quantitySold") int quantitySold,
+            @RequestParam ("customerName")String customerName,
             @RequestHeader("Session-Id") String sessionId) {
         if (!isSessionValid(sessionId)) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
         try {
-            OrderEntity order = employeeService.createBill(franchiseId, productId, quantitySold, customerName);
+            SessionEntity session = sessionRepository.findBySessionId(sessionId);
+            int userIdOne = session.getUserId();
+            UserEntity userOne = userRepository.findUserById(userIdOne);
+            OrderEntity order = employeeService.createBill(userOne.getFranchiseId(), productId, quantitySold, customerName);
             return new ResponseEntity<>(order, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
@@ -58,18 +60,23 @@ public class EmployeeController {
 
     @GetMapping("/checkStock")
     public ResponseEntity<Integer> checkStockAvailability(
-          //  @RequestParam int franchiseId,
             @RequestParam int productId,
             @RequestHeader("Session-Id") String sessionId) {
         if (!isSessionValid(sessionId)) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
-
         try {
-            int availableStock = employeeService.checkStockAvailability(//franchiseId, productId);
+        SessionEntity sessionEntity = sessionRepository.findBySessionId(sessionId);
+
+        if (sessionEntity == null) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        int userId = sessionEntity.getUserId();
+            UserEntity user = userRepository.findFranchiseIdById(userId);
+
+            int availableStock = employeeService.checkStockAvailability(user.getFranchiseId(), productId);
             return new ResponseEntity<>(availableStock, HttpStatus.OK);
         } catch (RuntimeException e) {
-
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
     }

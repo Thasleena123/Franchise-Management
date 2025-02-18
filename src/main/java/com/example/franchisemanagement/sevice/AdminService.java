@@ -74,11 +74,12 @@ public class AdminService {
     public void rejectStockRequest(int requestId) {
         RequestEntity request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Stock request not found"));
+        if("Approved".equals(request.getStatus())){
+            throw  new RuntimeException("request is already approved so cannot be rejected");
+        }
         request.setStatus("Rejected");
         requestRepository.save(request);
     }
-
-
     public void allocateProductToFranchase(int franchiseId, int  productId, int quantityToAllocate, int requestId) {
         CompanyStockEntity companyStockEntity = companyStockRepository.findByProductId(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found in company stock"));
@@ -92,9 +93,6 @@ public class AdminService {
             franchiseStock.setQuantity(franchiseStock.getQuantity() + quantityToAllocate);
             franchiseStockRepository.save(franchiseStock);
         } else {
-//            FranchiseEntity franchiseEntity = franchiseRepository.findById(franchiseId)
-//                    .orElseThrow(() -> new RuntimeException("Franchise not found"));
-
             franchiseStock = new FranchiseStockEntity();
             franchiseStock.setFranchiseId(franchiseId);
             franchiseStock.setProductId(productId);
@@ -107,6 +105,10 @@ public class AdminService {
         companyStockRepository.save(companyStockEntity);
 
     }
+
+//    public Byte[] generateCompanyReport() {
+//
+//    }
 }
 
 
