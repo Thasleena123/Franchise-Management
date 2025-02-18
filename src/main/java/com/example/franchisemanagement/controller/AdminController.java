@@ -5,12 +5,16 @@ import com.example.franchisemanagement.entity.*;
 import com.example.franchisemanagement.enums.Role;
 import com.example.franchisemanagement.sevice.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 //import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -29,6 +33,8 @@ public class AdminController {
     private CompanyStockRepository companyStockRepository;
     @Autowired
     private RequestRepository requestRepository;
+    @Autowired
+    private SupplyRepository supplyRepository;
 
     private boolean isSessionValid(String sessionId) {
         SessionEntity sessionEntity = sessionRepository.findBySessionId(sessionId);
@@ -89,8 +95,8 @@ public class AdminController {
 
     @PostMapping("/addToStock/{productId}")
     public ResponseEntity<CompanyStockEntity> addProductToStock(
-            @PathVariable int productId,
-            @RequestParam int quantity,
+            @PathVariable("productId") int productId,
+            @RequestParam("quantity") int quantity,
             @RequestHeader("Session-id") String sessionId) {
         if (!isSessionValid(sessionId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
@@ -120,7 +126,7 @@ public class AdminController {
     @PutMapping("/rejectStockRequest/{requestId}")
     public ResponseEntity<String> rejectStockRequest(
             @PathVariable int requestId,
-             @RequestHeader("Session-id") String sessionId) {
+            @RequestHeader("Session-id") String sessionId) {
         if (!isSessionValid(sessionId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Session expired or invalid.");
         }
@@ -142,3 +148,5 @@ public class AdminController {
     }
 
 }
+
+

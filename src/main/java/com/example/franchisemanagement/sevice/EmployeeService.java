@@ -9,7 +9,7 @@ import com.example.franchisemanagement.entity.ProductEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.sql.Date;
 
 @Service
 public class EmployeeService {
@@ -38,7 +38,7 @@ public class EmployeeService {
         order.setProductId(product.getProductId());
         order.setQuantity(quantitySold);
         order.setTotalPrice(totalPrice);
-        order.setSaleDate(new Date());
+        order.setSaleDate(new Date(System.currentTimeMillis()));
         order.setCustomerName(customerName);
         order = orderRepository.save(order);
 
@@ -47,7 +47,8 @@ public class EmployeeService {
 
         return order;
     }
-    public int checkStockAvailability(int franchiseId,int productId) {
+
+    public int checkStockAvailability(int franchiseId, int productId) {
         FranchiseStockEntity franchiseStock = franchiseStockRepository.findByFranchiseIdAndProductId(franchiseId, productId)
                 .orElseThrow(() -> new RuntimeException("Product not available in franchise stock"));
         return franchiseStock.getQuantity();

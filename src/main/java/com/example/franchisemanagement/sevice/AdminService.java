@@ -5,6 +5,10 @@ import com.example.franchisemanagement.entity.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.xml.crypto.Data;
+import java.sql.Date;
+
 @Service
 public class AdminService {
     @Autowired
@@ -21,6 +25,10 @@ public class AdminService {
     private CompanyStockRepository companyStockRepository;
     @Autowired
     private Authenticate authenticate;
+    @Autowired
+    private CompanyPurchaseRepository companyPurchaseRepository;
+    @Autowired
+    private SupplyRepository supplyRepository;
 
 
     public FranchiseEntity addFranchise(FranchiseEntity franchiseEntity) {
@@ -35,10 +43,12 @@ public class AdminService {
         userEntity.setPassword(authenticate.encodePassword(userEntity.getPassword()));
         return userRepository.save(userEntity);
     }
+
     public ProductEntity addProduct(ProductEntity product) {
         return productRepository.save(product); // Save the product to the database
     }
-    public ProductEntity updateProduct(int productId,ProductEntity updatedProduct){
+
+    public ProductEntity updateProduct(int productId, ProductEntity updatedProduct) {
         ProductEntity product = productRepository.findByproductId(productId).orElseThrow(() -> new RuntimeException("Product not found"));
         product.setProductName(updatedProduct.getProductName());
         product.setCategory(updatedProduct.getCategory());
@@ -48,12 +58,16 @@ public class AdminService {
 
         return productRepository.save(product);
     }
+
     @Transactional
     public CompanyStockEntity addProductToCompanyStock(int productId, int quantity) {
         ProductEntity product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         CompanyStockEntity companyStock = new CompanyStockEntity();
+
+        companyPurchaseRepository.save(new CompanyPurchaseEntity(productId, new Date(System.currentTimeMillis()), quantity));
+
         companyStock.setProductId(productId);
         companyStock.setQuantity(quantity);
         return companyStockRepository.save(companyStock);
@@ -65,22 +79,25 @@ public class AdminService {
         RequestEntity request = requestRepository.findById(RequestId)
                 .orElseThrow(() -> new RuntimeException("stock request not found"));
 
+
         request.setStatus("Approved");
         requestRepository.save(request);
-        allocateProductToFranchase(request.getFranchiseid(), request.getProductId(), request.getNoOfRequestedProduct(), request.getRequestId());
+        allocateProductToFranchase(request.getFranchiseid(), request.getProductId(), request.getNoOfRequestedProduct());
     }
 
     @Transactional
     public void rejectStockRequest(int requestId) {
         RequestEntity request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Stock request not found"));
-        if("Approved".equals(request.getStatus())){
-            throw  new RuntimeException("request is already approved so cannot be rejected");
+        if ("Approved".equals(request.getStatus())) {
+            throw new RuntimeException("request is already approved so cannot be rejected");
         }
         request.setStatus("Rejected");
         requestRepository.save(request);
     }
-    public void allocateProductToFranchase(int franchiseId, int  productId, int quantityToAllocate, int requestId) {
+
+    @Transactional
+    public void allocateProductToFranchase(int franchiseId, int productId, int quantityToAllocate) {
         CompanyStockEntity companyStockEntity = companyStockRepository.findByProductId(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found in company stock"));
 
@@ -101,16 +118,11 @@ public class AdminService {
             franchiseStockRepository.save(franchiseStock);
 
         }
+        supplyRepository.save(new SupplyEntity(new Date(System.currentTimeMillis()), productId, quantityToAllocate, franchiseId));
+
         companyStockEntity.setQuantity(companyStockEntity.getQuantity() - quantityToAllocate);
         companyStockRepository.save(companyStockEntity);
 
     }
-
-//    public Byte[] generateCompanyReport() {
-//
-//    }
 }
-
-
-
 

@@ -3,17 +3,19 @@ package com.example.franchisemanagement.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.Date;
+
+import java.sql.Date;
+
 @Data
 @Entity
 public class OrderEntity {
 
-   @Id
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @JoinColumn(name = "franchise_id", nullable = false)
-    private  int franchiseId;
+    private int franchiseId;
 
     @JoinColumn(name = "product_id", nullable = false)
     private int productId;
@@ -24,7 +26,6 @@ public class OrderEntity {
     @Column(nullable = false)
     private double totalPrice;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Date saleDate;
 
