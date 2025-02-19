@@ -27,10 +27,6 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> login(@RequestBody UserEntity user, HttpServletRequest request, HttpServletResponse response) {
         return userService.loginUser(user.getName(), user.getPassword(), request, response);
     }
-//
-//    @PostMapping("/register")
-//    public ResponseEntity<String> registerUser(@RequestBody UserEntity user, @RequestParam String adminName) {
-//        return userService.registerUser(user, adminName);
-//    }
+
 }
 

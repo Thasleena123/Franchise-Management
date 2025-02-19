@@ -60,7 +60,7 @@ public class EmployeeController {
 
     @GetMapping("/checkStock")
     public ResponseEntity<Integer> checkStockAvailability(
-            @RequestParam int productId,
+            @RequestParam("productId") int productId,
             @RequestHeader("Session-Id") String sessionId) {
         if (!isSessionValid(sessionId)) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
