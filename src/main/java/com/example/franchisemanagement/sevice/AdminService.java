@@ -3,11 +3,17 @@ package com.example.franchisemanagement.sevice;
 import com.example.franchisemanagement.Repository.*;
 import com.example.franchisemanagement.entity.*;
 import jakarta.transaction.Transactional;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.xml.crypto.Data;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.sql.Date;
+import java.util.List;
 
 @Service
 public class AdminService {
@@ -124,5 +130,50 @@ public class AdminService {
         companyStockRepository.save(companyStockEntity);
 
     }
+
+    public ByteArrayInputStream generateCompanyPurchaseReport(Date startDate, Date endDate) throws IOException {
+        List<CompanyPurchaseEntity> purchases = companyPurchaseRepository.findByPurchaseDateBetween(startDate, endDate);
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Company Purchase Report");
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {
+                    "purchase ID", "product ID", "purchase Date", "Quantity"};
+
+
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            int rowNum = 1;
+            for (CompanyPurchaseEntity purchase : purchases) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(purchase.getPurchaseId());
+                row.createCell(1).setCellValue(purchase.getProductId());
+                row.createCell(2).setCellValue(purchase.getPurchaseDate().toString());
+                row.createCell(3).setCellValue(purchase.getQuantity());
+            }
+            Row summaryRow = sheet.createRow(rowNum + 1);
+            summaryRow.createCell(0).setCellValue("Total purchases");
+
+
+            int totalQuality = purchases.stream().mapToInt(CompanyPurchaseEntity::getQuantity).sum();
+            summaryRow.createCell(3).setCellValue(totalQuality);
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return new ByteArrayInputStream(outputStream.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("failed to generate Exel Report", e);
+        }
+    }
 }
+
+
 

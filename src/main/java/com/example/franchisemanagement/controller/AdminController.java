@@ -5,13 +5,17 @@ import com.example.franchisemanagement.entity.*;
 import com.example.franchisemanagement.enums.Role;
 import com.example.franchisemanagement.sevice.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 //import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -146,7 +150,28 @@ public class AdminController {
         adminService.rejectStockRequest(requestId);
         return ResponseEntity.ok("Stock request rejected");
     }
+    @GetMapping("/company-purchases")
+    public ResponseEntity<InputStreamResource> downloadCompanyPurchaseReport(
+            @RequestParam Date startDate,
+            @RequestParam Date endDate,
+         @RequestHeader("Session-id") String sessionId)throws IOException {
+        if (!isSessionValid(sessionId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
 
+        ByteArrayInputStream bis = adminService.generateCompanyPurchaseReport(startDate, endDate);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=company-purchases-report.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(new InputStreamResource(bis));
+    }
 }
+
+
 
 

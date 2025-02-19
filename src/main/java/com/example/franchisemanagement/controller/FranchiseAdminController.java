@@ -8,10 +8,15 @@ import com.example.franchisemanagement.entity.UserEntity;
 import com.example.franchisemanagement.enums.Role;
 import com.example.franchisemanagement.sevice.FranchiseAdmin;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
+import java.sql.Date;
 import java.time.LocalDateTime;
 
 @RestController
@@ -82,6 +87,24 @@ public class FranchiseAdminController {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("/franchise-sales/{franchiseId}")
+    public ResponseEntity<InputStreamResource> downloadFranchiseSalesReport(
+            @PathVariable int franchiseId,
+            @RequestParam Date startDate,
+            @RequestParam Date endDate) {
+
+        ByteArrayInputStream bis = franchiseAdminService.generateFranchiseSalesReport(franchiseId, startDate, endDate);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=franchise-sales-report.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(new InputStreamResource(bis));
+    }
 }
+
 
 
