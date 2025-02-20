@@ -45,13 +45,19 @@ public class FranchiseAdminController {
     }
 
     @PostMapping("/createEmployee")
-    public ResponseEntity<UserEntity> createEmployee(@RequestBody UserEntity userEntity,
+    public ResponseEntity<UserEntity> createEmployee(@RequestParam("name") String name,
+                                                     @RequestParam("password") String password,
+                                                     @RequestParam("role") Role role,
                                                      @RequestHeader("Session-Id") String sessionId) {
         if (!isSessionValid(sessionId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
+         SessionEntity session = sessionRepository.findBySessionId(sessionId);
+         int userId = session.getUserId();
+         UserEntity user = userRepository.findUserById(userId);
+         int franchiseId = user.getFranchiseId();
         try {
-            UserEntity savedUser = franchiseAdminService.createEmployeeUser(userEntity);
+            UserEntity savedUser = franchiseAdminService.createEmployeeUser(name,password,role,franchiseId);
             return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -87,12 +93,21 @@ public class FranchiseAdminController {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
-    @GetMapping("/franchise-sales/{franchiseId}")
+    @GetMapping("/franchise-sales")
     public ResponseEntity<InputStreamResource> downloadFranchiseSalesReport(
-            @PathVariable int franchiseId,
+            @RequestHeader("Session-Id") String sessionId,
             @RequestParam Date startDate,
             @RequestParam Date endDate) {
-
+        SessionEntity sessionEntity = sessionRepository.findBySessionId(sessionId);
+        if (sessionEntity == null) {
+            return ResponseEntity.status(401).build();
+        }
+        int userId = sessionEntity.getUserId();
+        UserEntity user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        int franchiseId = user.getFranchiseId();
         ByteArrayInputStream bis = franchiseAdminService.generateFranchiseSalesReport(franchiseId, startDate, endDate);
 
         HttpHeaders headers = new HttpHeaders();
@@ -105,6 +120,7 @@ public class FranchiseAdminController {
                 .body(new InputStreamResource(bis));
     }
 }
+
 
 
 

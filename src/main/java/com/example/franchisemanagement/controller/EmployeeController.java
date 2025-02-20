@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/employee")
+@RequestMapping("employee")
 public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;

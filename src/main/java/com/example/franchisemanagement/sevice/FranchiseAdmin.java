@@ -2,6 +2,7 @@ package com.example.franchisemanagement.sevice;
 
 import com.example.franchisemanagement.Repository.*;
 import com.example.franchisemanagement.entity.*;
+import com.example.franchisemanagement.enums.Role;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +36,12 @@ public class FranchiseAdmin {
     @Autowired
     private OrderRepository orderRepository;
 
-    public UserEntity createEmployeeUser(UserEntity userEntity) {
-        userEntity.setPassword(authenticate.encodePassword(userEntity.getPassword()));
+    public UserEntity createEmployeeUser(String name, String password, Role role,int franchiseId) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.setName(name);
+        userEntity.setPassword(authenticate.encodePassword(password));
+        userEntity.setRole(role);
+        userEntity.setFranchiseId(franchiseId);
         return userRepository.save(userEntity);
     }
 

@@ -42,6 +42,7 @@ public class AdminService {
     }
 
     public void deleteFranchase(int franchiseId) {
+
         franchiseRepository.deleteById(franchiseId);
     }
 
@@ -51,17 +52,6 @@ public class AdminService {
     }
 
     public ProductEntity addProduct(ProductEntity product) {
-        return productRepository.save(product); // Save the product to the database
-    }
-
-    public ProductEntity updateProduct(int productId, ProductEntity updatedProduct) {
-        ProductEntity product = productRepository.findByproductId(productId).orElseThrow(() -> new RuntimeException("Product not found"));
-        product.setProductName(updatedProduct.getProductName());
-        product.setCategory(updatedProduct.getCategory());
-        product.setDistributorPrice(updatedProduct.getDistributorPrice());
-        product.setRetailPrice(updatedProduct.getRetailPrice());
-        product.setWholesalePrice(updatedProduct.getWholesalePrice());
-
         return productRepository.save(product);
     }
 
